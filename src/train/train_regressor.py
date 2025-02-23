@@ -69,6 +69,7 @@ class TrainRegressor:
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f'device: {device}')
     model = ResnetRegressor(num_outputs=2).to(device)
     transform = transforms.Compose([transforms.Resize((224, 224)), transforms.ToTensor()])
     train_dataset = GazeTDataset(split='train', transform=transform)
