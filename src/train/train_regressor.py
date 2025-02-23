@@ -19,7 +19,7 @@ logger.setLevel(logging.INFO)
 
 class TrainRegressor:
     def __init__(self):
-        self.run = wandb.init(project='GazeT-Regressor', entity='local')
+        self.run = wandb.init(project='GazeT-Regressor')
         self.logger = logging.getLogger(wandb.__name__)
 
     def train(self, model: torch.nn.Module,
