@@ -1,0 +1,8 @@
+default:
+  model: resnet18
+  dataset: GazeT
+
+train:
+  batch_size: 32
+  num_epochs: 100
+  learning_rate: 0.001

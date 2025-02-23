@@ -15,8 +15,6 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision.transforms import transforms
 from torchvision.transforms.functional import pil_to_tensor
 
-from src.utils.image_utils import get_img_roi
-
 MIN_WIDTH = 60
 MAX_WIDTH = 224
 
@@ -34,18 +32,9 @@ class GazeTDataset(Dataset):
         self.transform = transform
 
         self.images_path = self.data_path / 'images'
-        # self.metadata_path = self.data_path / 'metadata.json'
-        # self.blacklist_path = self.data_path / 'blacklist.json'
-        # self.blacklist = {k: set(v) for k, v in json.load(open(self.blacklist_path, 'r')).items()} if self.blacklist_path.exists() else {}
         self.metadata_path = self.data_path / 'metadata.csv'
         self.metadata = pd.read_csv(self.metadata_path)
         self.metadata = self.metadata[self.metadata['split'] == split]
-        # with open(self.metadata_path, 'r') as f:
-        #     self.metadata = json.load(f)
-        # self.metadata = list(filter(lambda x: x['split'] == self.split, self.metadata))
-        # self.metadata = list(filter(lambda x: x['task_id'] in self.blacklist and x['step'] in self.blacklist[x['task_id']], sellf.metadata))
-        # self.metadata = list(filter(lambda x: x['eyes_left_left'][0] - x['eyes_right_right'][0] > MIN_WIDTH, self.metadata))
-        # self.metadata = list(filter(lambda x: x['eyes_left_left'][0] - x['eyes_right_right'][0] < MAX_WIDTH, self.metadata))
 
     def __len__(self):
         return len(self.metadata)
