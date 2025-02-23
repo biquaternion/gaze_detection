@@ -6,6 +6,7 @@ from os import PathLike
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import torch
 from PIL import Image
 import cv2
@@ -20,10 +21,11 @@ MIN_WIDTH = 60
 MAX_WIDTH = 224
 
 DEFAULT_GAZET_PATH = Path('data/GazeT/dataset')
+PROCESSED_GAZET_PATH = Path('data/processed/GazeT')
 
 class GazeTDataset(Dataset):
     def __init__(self,
-                 data_path: PathLike = DEFAULT_GAZET_PATH,
+                 data_path: PathLike = PROCESSED_GAZET_PATH,
                  split: str = 'test',
                  transform=None):
         assert split in ['train', 'test'], 'split must be "train" or "test"'
@@ -32,14 +34,16 @@ class GazeTDataset(Dataset):
         self.transform = transform
 
         self.images_path = self.data_path / 'images'
-        self.metadata_path = self.data_path / 'metadata.json'
-        self.blacklist_path = self.data_path / 'blacklist.json'
+        # self.metadata_path = self.data_path / 'metadata.json'
+        # self.blacklist_path = self.data_path / 'blacklist.json'
         # self.blacklist = {k: set(v) for k, v in json.load(open(self.blacklist_path, 'r')).items()} if self.blacklist_path.exists() else {}
-        self.metadata = {}
-        with open(self.metadata_path, 'r') as f:
-            self.metadata = json.load(f)
-        self.metadata = list(filter(lambda x: x['split'] == self.split, self.metadata))
-        # self.metadata = list(filter(lambda x: x['task_id'] in self.blacklist and x['step'] in self.blacklist[x['task_id']], self.metadata))
+        self.metadata_path = self.data_path / 'metadata.csv'
+        self.metadata = pd.read_csv(self.metadata_path)
+        self.metadata = self.metadata[self.metadata['split'] == split]
+        # with open(self.metadata_path, 'r') as f:
+        #     self.metadata = json.load(f)
+        # self.metadata = list(filter(lambda x: x['split'] == self.split, self.metadata))
+        # self.metadata = list(filter(lambda x: x['task_id'] in self.blacklist and x['step'] in self.blacklist[x['task_id']], sellf.metadata))
         # self.metadata = list(filter(lambda x: x['eyes_left_left'][0] - x['eyes_right_right'][0] > MIN_WIDTH, self.metadata))
         # self.metadata = list(filter(lambda x: x['eyes_left_left'][0] - x['eyes_right_right'][0] < MAX_WIDTH, self.metadata))
 
@@ -47,26 +51,18 @@ class GazeTDataset(Dataset):
         return len(self.metadata)
 
     def __getitem__(self, idx):
-        task_id = self.metadata[idx]['task_id']
-        step = self.metadata[idx]['step']
+
+        md = self.metadata.iloc[idx]
+        task_id = md['task_id']
+        step = md['step']
         image_path = self.images_path / f'{task_id}' / f'{step}'
         image = Image.open(image_path).convert('RGB')
-        relative_x, relative_y = self.metadata[idx]['relative_x'], self.metadata[idx]['relative_y']
-        screen_x, screen_y = self.metadata[idx]['screen_size_x'], self.metadata[idx]['screen_size_y']
-        eyes_lr = self.metadata[idx]['eyes_left_right']
-        eyes_ll = self.metadata[idx]['eyes_left_left']
-        eyes_rl = self.metadata[idx]['eyes_right_left']
-        eyes_rr = self.metadata[idx]['eyes_right_right']
-        center = [(eyes_ll[0] + eyes_rr[0]) // 2, (eyes_ll[1] + eyes_rr[1]) // 2]
-
-        # l, t, r, b = center[0] - 224 // 2, center[1] - 224 // 2, center[0] + 224 // 2, center[1] + 224 // 2
-        # l, t, r, b = eyes_rr[0], min(eyes_rr[1], eyes_ll[1]) - (eyes_ll[0] - eyes_rr[0]) // 2, eyes_ll[0], max(eyes_rr[1], eyes_ll[1]) + (eyes_ll[0] - eyes_rr[0]) // 2
-        l, t, r, b = get_img_roi(np.asarray(image), [eyes_lr, eyes_rl, eyes_ll, eyes_rr, center])
-        cropped_image = image.crop((l + 8, t + 8, r - 8, b - 8))
+        relative_x, relative_y = md['relative_x'], md['relative_y']
+        screen_x, screen_y = md['screen_size_x'], md['screen_size_y']
 
         targets = [relative_x * screen_x, relative_y * screen_y]
         if self.transform:
-            image, targets = self.transform(cropped_image), torch.tensor(targets)
+            image, targets = self.transform(image), torch.tensor(targets).float()
         return image, targets
 
 

@@ -13,6 +13,8 @@ import wandb
 from src.train.dataloader import GazeTDataset
 from src.train.regressor import ResnetRegressor
 
+BATCH_SIZE = 32
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -73,13 +75,13 @@ if __name__ == '__main__':
     model = ResnetRegressor(num_outputs=2).to(device)
     transform = transforms.Compose([transforms.Resize((224, 224)), transforms.ToTensor()])
     train_dataset = GazeTDataset(split='train', transform=transform)
-    train_dataloader = DataLoader(train_dataset, batch_size=128, shuffle=True, drop_last=True)
+    train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, drop_last=True)
     val_dataset = GazeTDataset(split='test', transform=transform)
-    val_dataloader = DataLoader(val_dataset, batch_size=128, shuffle=False, drop_last=True)
+    val_dataloader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, drop_last=True)
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
     train_regressor = TrainRegressor()
     train_regressor.train(model, train_dataloader, val_dataloader,
                           criterion, optimizer, scheduler,
-                          num_epochs=30, device=device)
+                          num_epochs=100, device=device)
