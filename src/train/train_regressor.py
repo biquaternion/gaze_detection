@@ -38,7 +38,7 @@ class TrainRegressor:
             self.logger.info('train loop')
             for i, (inputs, targets) in enumerate(tqdm(train_dataloader)):
                 train_loss += self.train_step(criterion, device, inputs, model, optimizer, targets)
-            train_loss /= 5  # len(train_dataloader)
+            train_loss /= len(train_dataloader)
             wandb.log({'epoch': epoch, 'train_loss': train_loss})
             model.eval()
             val_loss = 0
@@ -47,7 +47,7 @@ class TrainRegressor:
                 for i, (inputs, targets) in enumerate(tqdm(val_dataloader)):
                     inputs, targets = inputs.to(device), targets.to(device)
                     val_loss += self.val_step(model(inputs), targets, criterion)
-                val_loss /= 5  # len(val_dataloader)
+                val_loss /= len(val_dataloader)
             wandb.log({'val_loss': val_loss})
             scheduler.step()
         torch.save(model.state_dict(), 'model.pth')
