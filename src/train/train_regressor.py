@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import os
 from pathlib import Path
 
 import hydra
@@ -76,6 +77,8 @@ class TrainRegressor:
 
 @hydra.main(config_path='../../conf', config_name='config')
 def main(cfg: DictConfig):
+    cuda_visible_devices = os.getenv('CUDA_VISIBLE_DEVICES', None)
+    logger.debug(cuda_visible_devices)
     batch_size = cfg.train.batch_size
     num_epochs = cfg.train.num_epochs
     learning_rate = cfg.train.learning_rate
