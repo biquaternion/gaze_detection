@@ -18,6 +18,7 @@ from src.train.dataloader import GazeTDataset
 from src.train.regressor import ResnetRegressor
 
 BATCH_SIZE = 32
+PROJECT_NAME = 'GazeT-Regressor'
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -25,7 +26,7 @@ logger.setLevel(logging.INFO)
 
 class TrainRegressor:
     def __init__(self):
-        self.run = wandb.init(project='GazeT-Regressor')
+        self.run = wandb.init(project=PROJECT_NAME, name=__name__)
         self.logger = logging.getLogger(wandb.__name__)
 
     def train(self, model: torch.nn.Module,
@@ -75,7 +76,6 @@ class TrainRegressor:
 
 @hydra.main(config_path='../../conf', config_name='config')
 def main(cfg: DictConfig):
-    logger.debug(cfg)
     batch_size = cfg.train.batch_size
     num_epochs = cfg.train.num_epochs
     learning_rate = cfg.train.learning_rate
@@ -92,11 +92,17 @@ def main(cfg: DictConfig):
     transform = transforms.Compose([transforms.Resize((224, 224)), transforms.ToTensor()])
 
     logger.info(f'preparing train dataset')
-    train_dataset = GazeTDataset(data_path=cwd / 'data' / 'processed' / 'GazeT', split='train', transform=transform)
+    train_dataset = GazeTDataset(data_path=cwd / 'data' / 'processed' / 'GazeT',
+                                 split='train',
+                                 transform=transform,
+                                 fit_size_policy=cfg.dataset.fit_size_policy)
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
 
     logger.info(f'preparing val dataset')
-    val_dataset = GazeTDataset(data_path=cwd / 'data' / 'processed' / 'GazeT', split='test', transform=transform)
+    val_dataset = GazeTDataset(data_path=cwd / 'data' / 'processed' / 'GazeT',
+                               split='test',
+                               transform=transform,
+                               fit_size_policy=cfg.dataset.fit_size_policy)
     val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, drop_last=True)
 
     logger.info(f'start training')

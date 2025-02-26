@@ -1,8 +1,9 @@
-default:
-  model: resnet18
-  dataset: GazeT
+defaults:
+  - override hydra/job_logging: custom
 
 train:
   batch_size: 32
   num_epochs: 100
   learning_rate: 0.001
+dataset:
+    fit_size_policy: padding
