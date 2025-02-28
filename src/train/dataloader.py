@@ -59,7 +59,7 @@ class GazeTDataset(Dataset):
             image = cv2.resize(image, dsize=self.target_size)
         elif self.fit_size_policy == 'padding':
             image = add_black_paddings(src=image, target_ratio_wh=(self.target_size[0], self.target_size[1]))
-        targets = [relative_x * screen_x, relative_y * screen_y]
+        targets = [relative_x, relative_y]
         if self.transform:
             image, targets = self.transform(Image.fromarray(image)), torch.tensor(targets).float()
         return image, targets

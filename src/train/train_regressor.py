@@ -35,9 +35,9 @@ class TrainRegressor:
               val_dataloader: DataLoader,
               criterion: torch.nn.Module,
               optimizer: torch.optim.Optimizer,
-              scheduler,
-              num_epochs,
-              device):
+              scheduler: torch.optim.lr_scheduler._LRScheduler,
+              num_epochs: int,
+              device: torch.device):
         self.logger.info('start training')
         for epoch in range(num_epochs):
             self.logger.info(f'epoch {epoch + 1}/{num_epochs}')
@@ -84,7 +84,7 @@ def main(cfg: DictConfig):
     learning_rate = cfg.train.learning_rate
     logger.info(f'config:\n{cfg}')
     cwd = hydra.utils.get_original_cwd()
-    print(cwd)
+    logger.info(f'workdir: {cwd}')
     cwd = Path(cwd)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
