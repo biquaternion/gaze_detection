@@ -92,7 +92,7 @@ def main(cfg: DictConfig):
 
     logger.info('instantiating model')
     model = ResnetRegressor(num_outputs=2).to(device)
-    transform = transforms.Compose([transforms.Resize((224, 224)), transforms.ToTensor()])
+    transform = transforms.Compose([transforms.Resize((224, 448)), transforms.ToTensor()])
 
     logger.info(f'preparing train dataset')
     train_dataset = GazeTDataset(data_path=cwd / 'data' / 'processed' / 'GazeT',
